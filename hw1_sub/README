@@ -1,0 +1,15 @@
+ 
+Problem 1
+The nonlinear and linear pendulum data can be found in non-lin.dat and lin.dat respectively. The data was created using leapfrog.c and was processed and plotted using pend.py
+
+Problem 2.
+I separated the solar ssytem between the inner and outer planets so the visulaizarion was a more clear. As you can see the orbits keep their elliptical nature but it fails to capture the pluto's orbit correctly seeing that it doesn't cross into Neptune's orbit. Data was generated using kepler_2.c and plotted using ss_plt.py
+
+Problem 3
+Using data from problem 2's output I was able to make Earth and Mars plot on EvM using ea_ma.py. The gif was created from a series of images that are stored in the EO folder which was created using ea_anim.py. As question 3a states the longer the code is ran the more inaccurate it becomes. 
+
+Problem 4
+Uses the same data as 2 and 3. The angular momentum is conserved quite well as you can see from the image conser_L.png. I should note the mass is set to 1 for all the planets
+
+Problem 5 and 6. 
+These problems were done in a similarly. The only change being the inputting of the inital position and velocity for Halley's Comet. If you look at the plot and the gif one can that see that the code does a good job of capturing the Halley's very small distance and large velocity of the perihelion. 
