@@ -5,8 +5,7 @@
 
 // #define MAXPNT  20000		/* maximum number of points */
 //
-// float pos[MAXPNT][3];
-// float vel[MAXPNT][3];
+double x[596], y[596], z[596], vx[596], vy[596], vz[596];
 //
 // void energy(float *en);
 // double rand_0_1(void);
@@ -14,181 +13,145 @@
 
 
 void leapstep();				/* routine to take one step */
-
-void accel();					/* accel. for harmonic osc. */
-void parseLine();
+void accel();
 void printstate();
 
 int readresults(FILE *results);
 
 int main()
-{       int row, item, i;
+{       int row, item, i, mstep, nstep, nout, n;
+
+        char *fn = "out.dat";
+        float dt, tnow;
         FILE *f=fopen("./midterm_p/init.out", "r");
-        double x[596], y[596], z[596], vx[596], vy[596], vz[596];
-        for(row=0; row<596; row++)
-        {
+        FILE *out = fopen(fn, "w+");
+        n = 596;
+
+        for(row=0; row<n; row++){
                 item = fscanf(f, "%lf %lf %lf %lf %lf %lf\n", &x[row], &y[row], &z[row], &vx[row], &vy[row], &vz[row]);
                 //printf("%f %f\n", x[row],y[row]);
-
         }
-
-        mstep = 10;				/* number of steps to take  */
-        nout = 2;					/* steps between outputs    */
-        dt = 1.0/2.0;		/* timestep for integration */
+        mstep = 1000;				/* number of steps to take  */
+        nout = 50;					/* steps between outputs    */
+        dt = 1.0/4.0;		/* timestep for integration */
         tnow = 0.0;
-        fprintf(fil, "Kinetic E. Potential E. Total E. Ang. Mom.\n" );
+        // fprintf(fil, "Kinetic E. Potential E. Total E. Ang. Mom.\n" );
 
         for (nstep = 0; nstep < mstep; nstep++) {	/* loop mstep times in all  */
-           if (nstep % nout == 0)			/* if time to output state  */
-             printstate(MAXPNT, tnow, fn, nstep);		/* then call output routine */
-           energy(en);
-           // printf( "%.10f %.10f %.10f %.10f %.10f\n", tnow, en[0],en[1],en[2],en[3]);
-           fprintf(fil, "%.10f %.10f %.10f %.10f %.10f\n", tnow, en[0],en[1],en[2],en[3]);
-     //
-        // for(i=0; i<50; i++)
-        // {
-        //    printf("%f %f %f %f %f %f\n", x[i],y[i],z[i], vx[i],vy[i], vz[i]);
-        // }
+              if (nstep % nout == 0)			/* if time to output state  */
+                printstate(n, tnow, fn, nstep);		/* then call output routine */
+
+              leapstep(n, dt);			/* take integration step    */
+              tnow = tnow + dt;			/* and update value of time *
+            // if (mstep % nout == 0){			/* if last output wanted    */
+            //   printstate(MAXPNT, tnow, fn,nstep);		/* then output last step    */
+            //   energy(en);
+            //   fprintf(fil, "%.10f %.10f %.10f %.10f %.10f\n", tnow, en[0],en[1],en[2],en[3]);
+            // }
+          }
         fclose(f);
+        fclose(out);
         return 0;
 }
 
-// }
-//  void main(argc, argv)
-//    int argc;
-//    char *argv[];
-//  {
+
+void accel(ax, ay, az, n)
+ double ax[], ay[], az[];
+ int n;
+ {
+  // G = 1
+  double dx_a, dx_b, dy_a, dy_b, dz_a, dz_b, a_r3, b_r3, gm, x_cm, y_cm, z_cm;
+  int i, j, k, galA_ind, galB_ind, neg;
+  gm = 2.0;
+  galA_ind = 0;
+  galB_ind = 298;
+
+  for(k = 0; k < n; k++){
+
+     dx_a = x[k] - x[galA_ind];
+     dx_b = x[k] - x[galB_ind];
+     dy_a = y[k] - y[galA_ind];
+     dy_b = y[k] - y[galB_ind];
+     dz_a = z[k] - z[galA_ind];
+     dz_b = z[k] - z[galB_ind];
+     a_r3 = powf(((dx_a*dx_a) + (dy_a*dy_a)+ (dz_a*dz_a)),-1.5);
+     b_r3 = powf(((dx_b*dx_b) + (dy_b*dy_b)+ (dz_b*dz_b)),-1.5);
+     ax[k] = -gm*dx_a*a_r3 - gm*dx_b*b_r3 ;
+     ay[k] = -gm*dy_a*a_r3 - gm*dx_b*b_r3 ;
+     az[k] = -gm*dz_a*a_r3 - gm*dx_b*b_r3 ;
+     // ax[k] = 0;
+     // ay[k] = 0;
+     // az[k] = 0;
+     if ((galA_ind == k) || (galB_ind ==k)){
+       x_cm = x[galB_ind] + x[galA_ind];
+       y_cm = y[galB_ind] + y[galA_ind];
+       z_cm = z[galB_ind] + z[galA_ind];
+
+       dx_a = x[k] - x_cm;
+       dy_a = y[k] - y_cm;
+       dz_a = z[k] - z_cm;
+
+       a_r3 = powf(((dx_a*dx_a) + (dy_a*dy_a)+ (dz_a*dz_a)),-1.5);
+       ax[k] = -gm*dx_a*a_r3;
+       ay[k] = -gm*dy_a*a_r3;
+       az[k] = -gm*dz_a*a_r3;
+       // if (k != 0){
+       //   ax[k] = -1 * ax[k];
+       //   ay[k] = -1 * ay[k];
+       //   az[k] = -1 * az[k];
+       // }
+     // printf("%.3f",ax[k] );
+      }
+    }
+  }
+
+
+ void leapstep(n, dt)
+ int n;						/* number of points         */
+ double dt;					/* timestep for integration */
+ {
+     int i;
+     double ax[596];
+     double ay[596];
+     double az[596];
+
+     accel(ax, ay, az, n);		/* call acceleration code   */
+     for (i = 0; i < n; i++)	{		/* loop over all points...  */
+ 	     vx[i]= vx[i] + 0.5 * dt * ax[i];		/* advance vel by half-step */
+       vy[i]= vy[i] + 0.5 * dt * ay[i];		/* advance vel by half-step */
+       vz[i]= vz[i] + 0.5 * dt * az[i];
+ }
+     for (i = 0; i < n; i++){			/* loop over points again...*/
+       x[i] = x[i] + dt * vx[i];		/* advance vel by half-step */
+       y[i] = y[i] + dt * vy[i];		/* advance vel by half-step */
+       z[i] = z[i] + dt * vz[i];		/* advance pos by full-step */
+ }
+     accel(ax, ay, az, n);			/* call acceleration code   */
+     for (i = 0; i < n; i++)	{		/* loop over all points...  */
+ 	     vx[i]= vx[i] + 0.5 * dt * ax[i];		/* advance vel by half-step */
+       vy[i]= vy[i] + 0.5 * dt * ay[i];		/* advance vel by half-step */
+       vz[i]= vz[i] + 0.5 * dt * az[i];
+
+ }
+}
 //
-//    char *fn = argv[1];
-//    float en[4];
-//    FILE *fil = fopen(efn, "w+");
-//    double pi = 22.0/7.0;
-//    struct vector plum_sp();
-//    int i, j, n, mstep, nout, nstep;
-//    double tnow, dt;
-//    printf("Creating Plummer Sphere with %d Bodies\n", MAXPNT);
-//    for (i = 0; i<MAXPNT; i++) {
-//      if ((i % 1000)==0)
-//       printf("Creating %d particle \n",i);
-//      for(j=0;j<3;j++){
-//        struct vector  plum_v = plum_sp();
-//        pos[i][j] = plum_v.pos[j];
-//        vel[i][j] = plum_v.vel[j];
-//        // vel[i][j] = 0; //Collapsing Sphere
-//     }
-//    }
-//    printf("Done making sphere\n");
-   // mstep = 10;				/* number of steps to take  */
-//    nout = 2;					/* steps between outputs    */
-//    dt = 1.0/2.0;		/* timestep for integration */
-//    tnow = 0.0;
-//    fprintf(fil, "Kinetic E. Potential E. Total E. Ang. Mom.\n" );
-//
-//    for (nstep = 0; nstep < mstep; nstep++) {	/* loop mstep times in all  */
-//       if (nstep % nout == 0)			/* if time to output state  */
-//         printstate(MAXPNT, tnow, fn, nstep);		/* then call output routine */
-//       energy(en);
-//       // printf( "%.10f %.10f %.10f %.10f %.10f\n", tnow, en[0],en[1],en[2],en[3]);
-//       fprintf(fil, "%.10f %.10f %.10f %.10f %.10f\n", tnow, en[0],en[1],en[2],en[3]);
-// //
-//       leapstep(MAXPNT, dt);			/* take integration step    */
-//       tnow = tnow + dt;			/* and update value of time */
-//
-//
-//     // if (mstep % nout == 0){			/* if last output wanted    */
-//     //   printstate(MAXPNT, tnow, fn,nstep);		/* then output last step    */
-//     //   energy(en);
-//     //   fprintf(fil, "%.10f %.10f %.10f %.10f %.10f\n", tnow, en[0],en[1],en[2],en[3]);
-//     // }
-//   }
-//     printstate(MAXPNT, tnow, fn,nstep);		/* then output last step    */
-//     energy(en);
-//     fprintf(fil, "%.10f %.10f %.10f %.10f %.10f\n", tnow, en[0],en[1],en[2],en[3]);
-//
-// }
-//  double rand_0_1(void){
-//      return rand() / ((double) RAND_MAX);
-//  }
-//
-//  void accel(ax, ay, az, n)
-//  double ax[], ay[], az[];
-//  int n;
-//  {
-//   double dx, dy, dz, inv_r3, gm;
-//   int i, j, k;
-//   gm = 1.0;
-//
-//   for(k = 0; k < n; k++){
-//     ax[k] = 0.0;
-//     ay[k] = 0.0;
-//     az[k] = 0.0;
-//     for(j = 0; j < n; j++){
-//       if (j != k){
-//          dx = pos[j][0] - pos[k][0];
-//          dy = pos[j][1] - pos[k][1];
-//          dz = pos[j][2] - pos[k][2];
-//          inv_r3 = powf(((dx*dx) + (dy*dy)+ (dz*dz)),-1.5);
-//          ax[k] = ax[j] + (mass)*dx*inv_r3 ;
-//          ay[k] = ay[j] + (mass)*dy*inv_r3;
-//          az[k] = az[j] +  (mass)*dz*inv_r3;
-//      }
-//     }
-//   }
-//  }
-//
-//  void leapstep(n, dt)
-//  int n;						/* number of points         */
-//  double dt;					/* timestep for integration */
-//  {
-//      int i;
-//      double ax[MAXPNT];
-//      double ay[MAXPNT];
-//      double az[MAXPNT];
-//
-//      accel(ax, ay, az, n);		/* call acceleration code   */
-//      for (i = 0; i < n; i++)	{		/* loop over all points...  */
-//  	     vel[i][0] = vel[i][0] + 0.5 * dt * ax[i];		/* advance vel by half-step */
-//        vel[i][1] = vel[i][1] + 0.5 * dt * ay[i];		/* advance vel by half-step */
-//        vel[i][2] = vel[i][2] + 0.5 * dt * az[i];
-//  }
-//      for (i = 0; i < n; i++){			/* loop over points again...*/
-//        pos[i][0] = pos[i][0] + dt * vel[i][0];		/* advance vel by half-step */
-//        pos[i][1] = pos[i][1] + dt * vel[i][1];		/* advance vel by half-step */
-//        pos[i][2] = pos[i][2] + dt * vel[i][2];		/* advance pos by full-step */
-//  }
-//      accel(ax, ay, az, n);			/* call acceleration code   */
-//      for (i = 0; i < n; i++){			/* loop over all points...  */
-//        vel[i][0] = vel[i][0] + 0.5 * dt * ax[i];		/* advance vel by half-step */
-//        vel[i][1] = vel[i][1] + 0.5 * dt * ay[i];		/* advance vel by half-step */
-//        vel[i][2] = vel[i][2] + 0.5 * dt * az[i];
-//
-//  }
-// }
-//
-// void printstate(n, tnow, fn, nstep)
-// int n;
-// char *fn;						/* number of points         */
-// double tnow;
-// int nstep;					/* current value of time    */
-// {
-//     int i;
-//     FILE *fp;
-//     char *fn_1;
-//     char s1[15];
-//     // Convert both the integers to string
-//     sprintf(s1, "%s_%d",fn,nstep);
-//
-//     printf("Writing to %s....\n",s1);
-//
-//     fp = fopen(s1, "w+");
-//     for (i = 0; i < n; i++)	/* loop over all points...  */
-//       fprintf(fp, "%12.6f %12.6f %12.6f %12.6f %12.6f %12.6f %12.6f\n", mass, pos[i][0], pos[i][1], pos[i][2], vel[i][0], vel[i][1], vel[i][2]) ;
-//     fclose(fp);
-//
-//     memset(s1, 0, sizeof s1);
-//
-// }
-//
+void printstate(n, tnow, fn, nstep)
+int n;
+char *fn;						/* number of points         */
+double tnow;
+int nstep;					/* current value of time    */
+{
+    int i;
+    FILE *fp;
+    char *fn_1;
+    printf("Writing step# %d....\n",nstep);
+
+    fp = fopen(fn, "a");
+    for (i = 0; i < n; i++)	/* loop over all points...  */
+      fprintf(fp, "%12.6f %12.6f %12.6f %12.6f %12.6f %12.6f %12.6f\n", tnow, x[i], y[i], z[i], vx[i], vy[i], vz[i]) ;
+    fclose(fp);
+}
+
 
  // struct vector mice_init(void)
  // {
