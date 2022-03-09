@@ -31,11 +31,10 @@ int main()
                 item = fscanf(f, "%lf %lf %lf %lf %lf %lf\n", &x[row], &y[row], &z[row], &vx[row], &vy[row], &vz[row]);
                 //printf("%f %f\n", x[row],y[row]);
         }
-        mstep = 1000;				/* number of steps to take  */
-        nout = 50;					/* steps between outputs    */
-        dt = 1.0/4.0;		/* timestep for integration */
+        mstep = 64*100;				/* number of steps to take  */
+        nout = 64*5;					/* steps between outputs    */
+        dt = 1.0/32.0;		/* timestep for integration */
         tnow = 0.0;
-        // fprintf(fil, "Kinetic E. Potential E. Total E. Ang. Mom.\n" );
 
         for (nstep = 0; nstep < mstep; nstep++) {	/* loop mstep times in all  */
               if (nstep % nout == 0)			/* if time to output state  */
@@ -60,13 +59,16 @@ void accel(ax, ay, az, n)
  int n;
  {
   // G = 1
-  double dx_a, dx_b, dy_a, dy_b, dz_a, dz_b, a_r3, b_r3, gm, x_cm, y_cm, z_cm;
+  double dx_a, dx_b, dy_a, dy_b, dz_a, dz_b, a_r3, b_r3, gm, x_cm, y_cm, z_cm, e;
   int i, j, k, galA_ind, galB_ind, neg;
   gm = 2.0;
   galA_ind = 0;
   galB_ind = 298;
-
+  e = 0.0;
   for(k = 0; k < n; k++){
+     x_cm = x[galB_ind] + x[galA_ind];
+     y_cm = y[galB_ind] + y[galA_ind];
+     z_cm = z[galB_ind] + z[galA_ind];
 
      dx_a = x[k] - x[galA_ind];
      dx_b = x[k] - x[galB_ind];
@@ -74,27 +76,38 @@ void accel(ax, ay, az, n)
      dy_b = y[k] - y[galB_ind];
      dz_a = z[k] - z[galA_ind];
      dz_b = z[k] - z[galB_ind];
-     a_r3 = powf(((dx_a*dx_a) + (dy_a*dy_a)+ (dz_a*dz_a)),-1.5);
-     b_r3 = powf(((dx_b*dx_b) + (dy_b*dy_b)+ (dz_b*dz_b)),-1.5);
-     ax[k] = -gm*dx_a*a_r3 - gm*dx_b*b_r3 ;
-     ay[k] = -gm*dy_a*a_r3 - gm*dx_b*b_r3 ;
-     az[k] = -gm*dz_a*a_r3 - gm*dx_b*b_r3 ;
+     a_r3 = fabs(powf(((dx_a*dx_a) + (dy_a*dy_a)+ (dz_a*dz_a) + e),-1.5));
+     b_r3 = fabs(powf(((dx_b*dx_b) + (dy_b*dy_b)+ (dz_b*dz_b) + e),-1.5));
+     ax[k] = -gm*dx_a*a_r3 - gm*dx_b*b_r3;
+     ay[k] = -gm*dy_a*a_r3 - gm*dy_b*b_r3;
+     az[k] = -gm*dz_a*a_r3 - gm*dz_b*b_r3;
+    //  ax[k] = -gm*dx_a*a_r3;
+    //  ay[k] = -gm*dy_a*a_r3;
+    //  az[k] = -gm*dz_a*a_r3;
+    // ax[k] = +-gm*dx_b*b_r3  ;
+    // ay[k] = -gm*dy_b*b_r3  ;
+    // az[k] = -gm*dz_b*b_r3 ;
+    //  if (k > 297){
+    //    ax[k] = -gm*dx_b*b_r3  ;
+    //    ay[k] = -gm*dy_b*b_r3  ;
+    //    az[k] = -gm*dz_b*b_r3 ;
+    // }
      // ax[k] = 0;
      // ay[k] = 0;
      // az[k] = 0;
      if ((galA_ind == k) || (galB_ind ==k)){
-       x_cm = x[galB_ind] + x[galA_ind];
-       y_cm = y[galB_ind] + y[galA_ind];
-       z_cm = z[galB_ind] + z[galA_ind];
 
        dx_a = x[k] - x_cm;
        dy_a = y[k] - y_cm;
        dz_a = z[k] - z_cm;
 
-       a_r3 = powf(((dx_a*dx_a) + (dy_a*dy_a)+ (dz_a*dz_a)),-1.5);
+       a_r3 = fabs(powf(((dx_a*dx_a) + (dy_a*dy_a)+ (dz_a*dz_a)),-1.5));
        ax[k] = -gm*dx_a*a_r3;
        ay[k] = -gm*dy_a*a_r3;
        az[k] = -gm*dz_a*a_r3;
+       // ax[k] = 0;
+       // ay[k] = 0;
+       // az[k] = 0;
        // if (k != 0){
        //   ax[k] = -1 * ax[k];
        //   ay[k] = -1 * ay[k];
@@ -103,7 +116,7 @@ void accel(ax, ay, az, n)
      // printf("%.3f",ax[k] );
       }
     }
-  }
+}
 
 
  void leapstep(n, dt)
