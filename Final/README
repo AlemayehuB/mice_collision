@@ -1,1 +1,5 @@
 Folder for Galaxy Evolution via magalie and gyrfalcon 
+Commands used to initalize galaxies(so far):
+source /usr/local/physics/nemo_cvs/nemo_start
+
+ndisk=21504 nbulge=8192 nhalo=32768 mbulge=1/16 mdisk=3/16 mhalo=1 rbulge=0.04168 cdisk=1/12 zdisk=0.005 rhalo=0.1
