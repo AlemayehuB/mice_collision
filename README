@@ -1,1 +1,5 @@
+The initial setup was made using python in jupyter notebook and the 596 particles are stored in the init.out file.
 
+The mice_leaper.c takes the init.out file and returns out.dat file that contains a format that is equivalent to the aarseth one. 
+
+I've attached various gifs of the simulation at different views and  different velocities.

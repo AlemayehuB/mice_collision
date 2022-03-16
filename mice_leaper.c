@@ -23,7 +23,7 @@ int main()
 
         char *fn = "out.dat";
         float dt, tnow;
-        FILE *f=fopen("./midterm_p/init.out", "r");
+        FILE *f=fopen("./setup/init.out", "r");
         FILE *out = fopen(fn, "w+");
         n = 596;
 
@@ -32,7 +32,7 @@ int main()
                 //printf("%f %f\n", x[row],y[row]);
         }
         mstep = 64*400;				/* number of steps to take  */
-        nout = 64*10;					/* steps between outputs    */
+        nout = 32*10;					/* steps between outputs    */
         dt = 1.0/32.0;		/* timestep for integration */
         tnow = 0.0;
 
@@ -41,12 +41,7 @@ int main()
                 printstate(n, tnow, fn, nstep);		/* then call output routine */
 
               leapstep(n, dt);			/* take integration step    */
-              tnow = tnow + dt;			/* and update value of time *
-            // if (mstep % nout == 0){			/* if last output wanted    */
-            //   printstate(MAXPNT, tnow, fn,nstep);		/* then output last step    */
-            //   energy(en);
-            //   fprintf(fil, "%.10f %.10f %.10f %.10f %.10f\n", tnow, en[0],en[1],en[2],en[3]);
-            // }
+              tnow = tnow + dt;			/* and update value of time */
           }
         fclose(f);
         fclose(out);
@@ -101,20 +96,11 @@ void accel(ax, ay, az, n)
       dz_a = z[k] - z[galA_ind];
 
       a_r3 = fabs(powf(((dx_a*dx_a) + (dy_a*dy_a)+ (dz_a*dz_a)),-1.5));
-      //a_r3 = fabs((dx_a*dx_a) + (dy_a*dy_a)+ (dz_a*dz_a));
       ax[k] = -gm*dx_a*a_r3;
       ay[k] = -gm*dy_a*a_r3;
       az[k] = -gm*dz_a*a_r3;
    }
-       // ax[k] = 0;
-       // ay[k] = 0;
-       // az[k] = 0;
-       // if (k != 0){
-       //   ax[k] = -1 * ax[k];
-       //   ay[k] = -1 * ay[k];
-       //   az[k] = -1 * az[k];
-       // }
-     // printf("%.3f",ax[k] );
+\
       }
     }
 
@@ -161,7 +147,8 @@ int nstep;					/* current value of time    */
     printf("Writing step# %d....\n",nstep);
 
     fp = fopen(fn, "a");
+    fprintf(fp, "596 %12.6f\n", tnow);
     for (i = 0; i < n; i++)	/* loop over all points...  */
-      fprintf(fp, "%12.6f %12.6f %12.6f %12.6f %12.6f %12.6f %12.6f\n", tnow, x[i], y[i], z[i], vx[i], vy[i], vz[i]) ;
+      fprintf(fp, "%12.6f %12.6f %12.6f %12.6f %12.6f %12.6f\n",  x[i], y[i], z[i], vx[i], vy[i], vz[i]) ;
     fclose(fp);
 }
