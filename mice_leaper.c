@@ -31,17 +31,19 @@ int main()
                 item = fscanf(f, "%lf %lf %lf %lf %lf %lf\n", &x[row], &y[row], &z[row], &vx[row], &vy[row], &vz[row]);
                 //printf("%f %f\n", x[row],y[row]);
         }
-        mstep = 64*400;				/* number of steps to take  */
-        nout = 32*10;					/* steps between outputs    */
+        mstep = 64*125;				/* number of steps to take  */
+        nout = 32;					/* steps between outputs    */
         dt = 1.0/32.0;		/* timestep for integration */
         tnow = 0.0;
 
         for (nstep = 0; nstep < mstep; nstep++) {	/* loop mstep times in all  */
-              if (nstep % nout == 0)			/* if time to output state  */
-                printstate(n, tnow, fn, nstep);		/* then call output routine */
-
-              leapstep(n, dt);			/* take integration step    */
-              tnow = tnow + dt;			/* and update value of time */
+            dt = 1.0/32.0;
+            if (nstep % nout == 0)			/* if time to output state  */
+              printstate(n, tnow, fn, nstep);		/* then call output routine */
+            // if(nstep > mstep*0.5)
+            //   dt = dt*0.25;
+            leapstep(n, dt);			/* take integration step    */
+            tnow = tnow + dt;			/* and update value of time */
           }
         fclose(f);
         fclose(out);
@@ -74,17 +76,26 @@ void accel(ax, ay, az, n)
      dz_b = z[k] - z[galB_ind];
      a_r3 = fabs(powf(((dx_a*dx_a) + (dy_a*dy_a)+ (dz_a*dz_a) + e*e),-1.5));
      b_r3 = fabs(powf(((dx_b*dx_b) + (dy_b*dy_b)+ (dz_b*dz_b) + e*e),-1.5));
-     ax[k] = -gm*dx_a*a_r3 - gm*dx_b*b_r3;
-     ay[k] = -gm*dy_a*a_r3 - gm*dy_b*b_r3;
-     az[k] = -gm*dz_a*a_r3 - gm*dz_b*b_r3;
-
+     // ax[k] = -gm*dx_a*a_r3 - gm*dx_b*b_r3;
+     // ay[k] = -gm*dy_a*a_r3 - gm*dy_b*b_r3;
+     // az[k] = -gm*dz_a*a_r3 - gm*dz_b*b_r3;
+     if (k > 298){
+       ax[k] = -gm*dx_b*b_r3 ;
+       ay[k] = -gm*dy_b*b_r3;
+       az[k] = -gm*dz_b*b_r3;
+    }
+    if (k < 298){
+      ax[k] = -gm*dx_a*a_r3 ;
+      ay[k] = -gm*dy_a*a_r3;
+      az[k] = -gm*dz_a*a_r3;
+   }
      if (galA_ind == k){
        // Core Acceleration
        dx_a = x[k] - x[galB_ind];
        dy_a = y[k] - y[galB_ind];
        dz_a = z[k] - z[galB_ind];
 
-       a_r3 = fabs(powf(((dx_a*dx_a) + (dy_a*dy_a)+ (dz_a*dz_a)),-1.5));
+       a_r3 = fabs(powf(((dx_a*dx_a) + (dy_a*dy_a)+ (dz_a*dz_a)+e*e),-1.5));
        ax[k] = -gm*dx_a*a_r3;
        ay[k] = -gm*dy_a*a_r3;
        az[k] = -gm*dz_a*a_r3;
@@ -95,12 +106,11 @@ void accel(ax, ay, az, n)
       dy_a = y[k] - y[galA_ind];
       dz_a = z[k] - z[galA_ind];
 
-      a_r3 = fabs(powf(((dx_a*dx_a) + (dy_a*dy_a)+ (dz_a*dz_a)),-1.5));
+      a_r3 = fabs(powf(((dx_a*dx_a) + (dy_a*dy_a)+ (dz_a*dz_a)+e*e),-1.5));
       ax[k] = -gm*dx_a*a_r3;
       ay[k] = -gm*dy_a*a_r3;
       az[k] = -gm*dz_a*a_r3;
    }
-\
       }
     }
 
@@ -144,10 +154,10 @@ int nstep;					/* current value of time    */
     int i;
     FILE *fp;
     char *fn_1;
-    printf("Writing step# %d....\n",nstep);
+//    printf("Writing step# %d....\n",nstep);
 
     fp = fopen(fn, "a");
-    fprintf(fp, "596 %12.6f\n", tnow);
+    // fprintf(fp, "596 %12.6f\n", tnow);
     for (i = 0; i < n; i++)	/* loop over all points...  */
       fprintf(fp, "%12.6f %12.6f %12.6f %12.6f %12.6f %12.6f\n",  x[i], y[i], z[i], vx[i], vy[i], vz[i]) ;
     fclose(fp);
