@@ -27,8 +27,8 @@ int main()
         ib = 40.0;
         x_in =4.6635;
         y_in = 21.5;
-        u_in = 0.01;
-        v_in = 0.77;
+        u_in = 0.05;
+        v_in = 0.6;
         // rot_mat(0.0, 0.0, 1.0, 30.0);
         item = fscanf(f, "%d %f \n", &n, &tnow);
         float x[n], y[n], z[n], vx[n], vy[n], vz[n];
@@ -52,13 +52,13 @@ int main()
             // printf("%12.6f  %12.6f  %12.6f\n", rot[0][0], rot[0][1], rot[0][2]);
             // printf("%12.6f  %12.6f  %12.6f\n", rot[1][0], rot[1][1], rot[1][2]);
             // printf("%12.6f  %12.6f  %12.6f\n", rot[2][0], rot[2][1], rot[2][2]);
-            x_l = rot[0][0]*x_l + rot[0][1]*y_l+ rot[0][2]*z_l + x_in;
-            y_l = rot[1][0]*x_l + rot[1][1]*y_l+ rot[1][2]*z_l - y_in;
-            z_l = rot[2][0]*x_l + rot[2][1]*y_l+ rot[2][2]*z_l;
-            u_l = rot[0][0]*u_l + rot[0][1]*v_l+ rot[0][2]*w_l - u_in;
-            v_l = rot[1][0]*u_l + rot[1][1]*v_l+ rot[1][2]*w_l + v_in;
-            w_l = rot[2][0]*u_l + rot[2][1]*v_l+ rot[2][2]*w_l;
-           fprintf(fn, "%.12f %12.6f %12.6f %12.6f %12.6f %12.6f %12.6f\n", mass, x_l, y_l, z_l, u_l, v_l, w_l);
+            x_l = (rot[0][0]*x_l + rot[0][1]*y_l+ rot[0][2]*z_l)/12.0 + x_in;
+            y_l = (rot[1][0]*x_l + rot[1][1]*y_l+ rot[1][2]*z_l)/12.0 - y_in;
+            z_l = (rot[2][0]*x_l + rot[2][1]*y_l+ rot[2][2]*z_l)/12.0;
+            u_l = (rot[0][0]*u_l + rot[0][1]*v_l+ rot[0][2]*w_l)/12.0 - u_in;
+            v_l = (rot[1][0]*u_l + rot[1][1]*v_l+ rot[1][2]*w_l)/12.0 + v_in;
+            w_l = (rot[2][0]*u_l + rot[2][1]*v_l+ rot[2][2]*w_l)/12.0;
+           fprintf(fn, "%.12f %12.6f %12.6f %12.6f %12.6f %12.6f %12.6f\n", mass*(3.0/16.0), x_l, y_l, z_l, u_l, v_l, w_l);
         }
         for(row = 0; row<n; row++){
           // Galaxy B
@@ -74,13 +74,13 @@ int main()
           // printf("%12.6f  %12.6f  %12.6f\n", rot[0][0], rot[0][1], rot[0][2]);
           // printf("%12.6f  %12.6f  %12.6f\n", rot[1][0], rot[1][1], rot[1][2]);
           // printf("%12.6f  %12.6f  %12.6f\n", rot[2][0], rot[2][1], rot[2][2]);
-          x_b = rot[0][0]*x_b + rot[0][1]*y_b+ rot[0][2]*z_b - x_in;
-          y_b = rot[1][0]*x_b + rot[1][1]*y_b+ rot[1][2]*z_b + y_in;
-          z_b = rot[2][0]*x_b + rot[2][1]*y_b+ rot[2][2]*z_b;
-          u_b = rot[0][0]*u_b + rot[0][1]*v_b+ rot[0][2]*w_b + u_in;
-          v_b = rot[1][0]*u_b + rot[1][1]*v_b+ rot[1][2]*w_b - v_in;
-          w_b = rot[2][0]*u_b + rot[2][1]*v_b+ rot[2][2]*w_b;
-         fprintf(fn, "%.12f %12.6f %12.6f %12.6f %12.6f %12.6f %12.6f\n", mass, x_b, y_b, z_b, u_b, v_b, w_b);
+          x_b = (rot[0][0]*x_b + rot[0][1]*y_b+ rot[0][2]*z_b)/12.0 - x_in;
+          y_b = (rot[1][0]*x_b + rot[1][1]*y_b+ rot[1][2]*z_b)/12.0 + y_in;
+          z_b = (rot[2][0]*x_b + rot[2][1]*y_b+ rot[2][2]*z_b)/12.0;
+          u_b = (rot[0][0]*u_b + rot[0][1]*v_b+ rot[0][2]*w_b)/12.0 + u_in;
+          v_b = (rot[1][0]*u_b + rot[1][1]*v_b+ rot[1][2]*w_b)/12.0 - v_in;
+          w_b = (rot[2][0]*u_b + rot[2][1]*v_b+ rot[2][2]*w_b)/12.0;
+         fprintf(fn, "%.12f %12.6f %12.6f %12.6f %12.6f %12.6f %12.6f\n", mass*(3.0/16.0), x_b, y_b, z_b, u_b, v_b, w_b);
         }
 
         fclose(f);
